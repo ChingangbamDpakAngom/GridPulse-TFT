@@ -1,7 +1,10 @@
-.PHONY: ingest preprocess train export serve dashboard test lint precommit install
+.PHONY: pipeline ingest preprocess train export serve dashboard test lint precommit install
 
 install:
 	uv pip install -e ".[dev]"
+
+pipeline:
+	python scripts/run_pipeline.py
 
 ingest:
 	python -m src.ingestion.grid_client

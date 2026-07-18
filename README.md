@@ -42,7 +42,10 @@ uv venv && uv pip install -e ".[dev]"
 # 2. Configure secrets
 cp .env.example .env      # then fill in the API keys
 
-# 3. Run the pipeline
+# 3. Run the pipeline (one command)
+make pipeline             # ingest -> preprocess -> train -> export
+
+# ...or run the stages individually
 make ingest               # fetch grid + weather data
 make preprocess           # clean, feature-engineer, write parquet
 make train                # train TFT-lite (logs to W&B)
@@ -52,6 +55,8 @@ make export               # export best checkpoint to ONNX + manifest
 make serve                # FastAPI on :8000  (see Project status above)
 streamlit run dashboard/app.py
 ```
+
+`make pipeline` wraps [`scripts/run_pipeline.py`](scripts/run_pipeline.py), which runs every stage in order, stops at the first failure, and prints a per-stage timing summary. Useful flags (run it directly to use them): `--days N`, `--epochs N`, `--no-wandb`, `--skip-ingest`, `--skip-train`, `--skip-export`. If `MET_OFFICE_API_KEY` is unset, weather ingestion is skipped automatically and the model trains on grid data alone.
 
 No keys yet? Try the self-contained demo:
 
