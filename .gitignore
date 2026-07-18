@@ -1,0 +1,48 @@
+# Environment
+.env
+.env.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.coverage
+*.egg-info/
+dist/
+build/
+
+# Data (raw & processed parquet - only latest processed is tracked)
+data/raw/
+data/processed/*.parquet
+!data/processed/.gitkeep
+
+# Models
+models/*.pth
+models/*.onnx
+!models/manifest.json
+!models/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# UV
+.venv/
+uv.lock
+
+# Local agent tooling state
+.claude/
+.claude-flow/
