@@ -56,7 +56,7 @@ make serve                # FastAPI on :8000  (see Project status above)
 streamlit run dashboard/app.py
 ```
 
-`make pipeline` wraps [`scripts/run_pipeline.py`](scripts/run_pipeline.py), which runs every stage in order, stops at the first failure, and prints a per-stage timing summary. Useful flags (run it directly to use them): `--days N`, `--epochs N`, `--no-wandb`, `--skip-ingest`, `--skip-train`, `--skip-export`. If `MET_OFFICE_API_KEY` is unset, weather ingestion is skipped automatically and the model trains on grid data alone.
+`make pipeline` wraps [`scripts/run_pipeline.py`](scripts/run_pipeline.py), which runs every stage in order, stops at the first failure, and prints a per-stage timing summary. Useful flags (run it directly to use them): `--serve` (start the API + dashboard when the pipeline finishes), `--days N`, `--epochs N`, `--no-wandb`, `--skip-ingest`, `--skip-train`, `--skip-export`. If `MET_OFFICE_API_KEY` is unset, weather ingestion is skipped automatically and the model trains on grid data alone.
 
 No keys yet? Try the self-contained demo:
 
