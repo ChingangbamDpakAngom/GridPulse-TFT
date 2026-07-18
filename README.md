@@ -1,5 +1,8 @@
 # GridPulse-TFT
 
+[![CI](https://github.com/ChingangbamDpakAngom/GridPulse-TFT/actions/workflows/ci.yml/badge.svg)](https://github.com/ChingangbamDpakAngom/GridPulse-TFT/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **UK Smart Grid Carbon Intensity Forecaster** — an end-to-end time-series ML pipeline that ingests live UK grid carbon intensity and weather data, trains a TFT-lite multi-quantile PyTorch model, exports it to ONNX, and serves 48-hour probabilistic forecasts through FastAPI with a GenAI battery-dispatch copilot.
 
 ```
@@ -56,7 +59,7 @@ make serve                # FastAPI on :8000  (see Project status above)
 streamlit run dashboard/app.py
 ```
 
-`make pipeline` wraps [`scripts/run_pipeline.py`](scripts/run_pipeline.py), which runs every stage in order, stops at the first failure, and prints a per-stage timing summary. Useful flags (run it directly to use them): `--serve` (start the API + dashboard when the pipeline finishes), `--days N`, `--epochs N`, `--no-wandb`, `--skip-ingest`, `--skip-train`, `--skip-export`. If `MET_OFFICE_API_KEY` is unset, weather ingestion is skipped automatically and the model trains on grid data alone.
+`make pipeline` wraps [`scripts/run_pipeline.py`](scripts/run_pipeline.py), which runs every stage in order, stops at the first failure, and prints a per-stage timing summary. Useful flags (run it directly to use them): `--serve` (start the API + dashboard when the pipeline finishes), `--days N`, `--epochs N`, `--no-wandb`, `--skip-ingest`, `--skip-train`, `--skip-export`. If `MET_OFFICE_API_KEY` is unset, weather ingestion is skipped automatically and the model trains on grid data alone. Grid ingestion backfills `--days` of historical carbon-intensity data (the API serves history for free), so a real model can be trained on the first run — no waiting for snapshots to accumulate.
 
 No keys yet? Try the self-contained demo:
 
@@ -113,4 +116,4 @@ Full documentation lives in [`docs/`](docs/) (MkDocs Material) and the detailed 
 
 ## License
 
-No license has been chosen yet. Until one is added, all rights are reserved.
+[MIT](LICENSE)

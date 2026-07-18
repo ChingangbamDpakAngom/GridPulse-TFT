@@ -43,7 +43,10 @@ def run_stage(name: str, module: str, args: list[str]) -> float:
     cmd = [sys.executable, "-m", module, *args]
     print(f"\n=== [{name}] {' '.join(cmd)}", flush=True)
     start = time.monotonic()
-    result = subprocess.run(cmd, cwd=REPO_ROOT, check=False)
+    # PYTHONUTF8 keeps stages from crashing on emoji in library output when
+    # the Windows console codepage is cp1252 (e.g. torch.onnx prints a checkmark).
+    env = {**os.environ, "PYTHONUTF8": "1"}
+    result = subprocess.run(cmd, cwd=REPO_ROOT, check=False, env=env)
     elapsed = time.monotonic() - start
     if result.returncode != 0:
         print(f"\nPipeline failed at stage '{name}' (exit {result.returncode}).", file=sys.stderr)
@@ -69,7 +72,11 @@ def main() -> None:
     timings: list[tuple[str, float]] = []
 
     if not args.skip_ingest:
-        timings.append(("ingest:grid", run_stage("ingest:grid", "src.ingestion.grid_client", [])))
+        # Backfill historical days so training data is available immediately.
+        grid_args = ["--backfill-days", str(args.days)]
+        timings.append(
+            ("ingest:grid", run_stage("ingest:grid", "src.ingestion.grid_client", grid_args))
+        )
         skip_weather = args.skip_weather
         if not skip_weather and not load_dotenv_key("MET_OFFICE_API_KEY"):
             print(

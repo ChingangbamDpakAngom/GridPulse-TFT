@@ -2,7 +2,7 @@ import asyncio
 import hashlib
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import httpx
@@ -69,15 +69,57 @@ class GridClient:
             logger.exception("Grid ingestion failed")
             raise
 
+    async def backfill(self, days: int):
+        """Fetch historical daily intensity for the past `days` days.
+
+        Files are written under the date directory they cover (not today's),
+        so the cleaner picks them up for the right day. Content-hash filenames
+        make re-runs idempotent.
+        """
+        now = datetime.now(UTC)
+        saved = 0
+        for offset in range(days, 0, -1):
+            day = now - timedelta(days=offset)
+            date_str = day.strftime("%Y-%m-%d")
+            try:
+                intensity_data = await self.fetch_intensity(date_str)
+                GridInboundSchema.model_validate(intensity_data)
+            except Exception as e:  # noqa: BLE001 - skip bad days, keep backfilling
+                logger.warning(f"Backfill failed for {date_str}: {e}")
+                continue
+
+            combined = {
+                "intensity": intensity_data,
+                "fetched_at": now.isoformat(),
+                "backfill": True,
+            }
+            dedup = self._dedup_key(intensity_data)
+            date_dir = settings.raw_grid_root / day.strftime("%Y/%m/%d")
+            filepath = date_dir / f"grid_backfill_{dedup}.json"
+            self._write_atomic(combined, filepath)
+            saved += 1
+            await asyncio.sleep(0.2)  # stay polite to the public API
+        logger.info(f"Backfill complete: {saved}/{days} days saved")
+
     async def close(self):
         await self.client.aclose()
 
 
 async def main():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--backfill-days", type=int, default=0, help="also fetch N days of historical intensity"
+    )
+    args = parser.parse_args()
+
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     client = GridClient()
     try:
         await client.run_ingestion()
+        if args.backfill_days > 0:
+            await client.backfill(args.backfill_days)
     finally:
         await client.close()
 
